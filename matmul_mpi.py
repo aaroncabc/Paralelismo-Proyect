@@ -35,8 +35,8 @@ displs = comm.bcast(displs, root=0)
 comm.Bcast(B, root=0)
 print(f"[Rank {rank}] recibió matriz B con shape: {B.shape}")
 
-# Scatterv de A
-comm.Scatterv([flat_A, sendcounts, displs, MPI.DOUBLE], local_A.flatten(), root=0)
+# Scatterv de A (usa ravel para buffer mutable)
+comm.Scatterv([flat_A, sendcounts, displs, MPI.DOUBLE], local_A.ravel(), root=0)
 
 print(f"[Rank {rank}] recibió local_A con shape: {local_A.shape}")
 
@@ -54,8 +54,9 @@ if rank == 0:
 else:
     flat_C = None
 
-comm.Gatherv(local_C.flatten(), [flat_C, recvcounts, recvdispls, MPI.DOUBLE], root=0)
+comm.Gatherv(local_C.ravel(), [flat_C, recvcounts, recvdispls, MPI.DOUBLE], root=0)
 
 if rank == 0:
     C = flat_C.reshape((N, N))
+    print(f"[Rank {rank}] matriz final C con shape: {C.shape}")
     print(f"[Rank {rank}] Tiempo total MPI (rango {size}): {end - start:.6f} segundos")
