@@ -46,14 +46,26 @@ local_C = np.matmul(local_A, B)
 end = MPI.Wtime()
 
 # Preparar recolección
-recvcounts = [r * N for r in rows_per_proc]
-recvdispls = [sum(recvcounts[:i]) for i in range(size)]
+# Solo rank 0 calcula
+if rank == 0:
+    recvcounts = [r * N for r in rows_per_proc]
+    recvdispls = [sum(recvcounts[:i]) for i in range(size)]
+else:
+    recvcounts = None
+    recvdispls = None
+
+# Sincronizar todos
+recvcounts = comm.bcast(recvcounts, root=0)
+recvdispls = comm.bcast(recvdispls, root=0)
+
 
 if rank == 0:
     flat_C = np.empty(N * N, dtype=np.float64)
 else:
     flat_C = None
 
+comm.Barrier()
+print(f"[Rank {rank}] antes de Gatherv local_C")
 comm.Gatherv(local_C.ravel(), [flat_C, recvcounts, recvdispls, MPI.DOUBLE], root=0)
 
 if rank == 0:
