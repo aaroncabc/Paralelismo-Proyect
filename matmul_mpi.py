@@ -1,14 +1,12 @@
 from mpi4py import MPI
 import numpy as np
-import sys
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-# Obtener tamaño de la matriz desde argumento
-N = int(sys.argv[1]) if rank == 0 else None
-N = comm.bcast(N, root=0)
+# Tamaño fijo de la matriz
+N = 100
 
 # Calcular distribución de filas
 rows_per_proc = [N // size + (1 if i < N % size else 0) for i in range(size)]
@@ -25,7 +23,7 @@ if rank == 0:
     flat_A = A.flatten()
     sendcounts = [r * N for r in rows_per_proc]
     displs = [sum(sendcounts[:i]) for i in range(size)]
-    
+
     print(f"[Rank {rank}] A.shape: {A.shape}")
     print(f"[Rank {rank}] B.shape: {B.shape}")
     print(f"[Rank {rank}] rows_per_proc: {rows_per_proc}")
