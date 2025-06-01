@@ -24,7 +24,7 @@ comm.Bcast(B, root=0)
 # Scatter rows of A
 rows_per_proc = N // size
 local_A = np.empty((rows_per_proc, N), dtype=np.float64)
-comm.Scatter(A, local_A, root=0)
+comm.Scatter(A.reshape(-1), local_A.reshape(-1), root=0)
 
 start = MPI.Wtime()
 local_C = np.matmul(local_A, B)
